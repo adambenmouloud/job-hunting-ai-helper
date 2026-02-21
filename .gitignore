@@ -17,6 +17,9 @@ data/personal/*
 # OS
 .DS_Store
 
+# Dev Test
+test_run.py
+
 # IDEs
 .vscode/
 .idea/
