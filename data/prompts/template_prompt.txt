@@ -1,0 +1,2 @@
+Please analyze the following resume against the provided job description. 
+Follow your system instructions to calculate the match score and suggest improvements.
