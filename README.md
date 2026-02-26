@@ -12,6 +12,8 @@ A Streamlit app that analyzes your resume against a job description using Claude
 
 > **Note:** The AI does not rewrite your resume for you. It provides suggestions: missing keywords, risky gaps, section-level comments, etc. You apply the changes yourself in the editor. Only apply suggestions that genuinely reflect your background and experience. 
 
+![Demo](data/examples/gif-for-github.gif)
+
 ## Requirements
 
 - Python 3.12+
