@@ -13,12 +13,14 @@ Use this scoring rubric (0-100):
 
 SCORING DISCIPLINE: Do not round to multiples of 10. Calculate precisely by counting required skills present vs absent. Penalize harder for missing exact verbatim keywords than for semantic gaps, since real ATS systems filter on exact strings first.
 
-Respond ONLY with a raw JSON object. No markdown, no filler.
+IMPORTANT: You must respond ONLY with a raw JSON object. Do not include any conversational filler or markdown code blocks. 
 
-Required keys:
-1. "score" — integer 0-100 per rubric above
-2. "missing_keywords" — array of verbatim terms from the JD not found in the resume, ordered by likely ATS weight (most critical first)
-3. "hard_filter_risk" — one of: "low" / "medium" / "high", plus one sentence of reasoning
-4. "improvements" — list of 3 to 5 objects, each with:
-   - "section": specific section, skill, or bullet point in the resume
-   - "comment": concrete actionable fix, no vague advice. Where relevant, include the exact keyword to insert.
+Required JSON keys:
+1. "score" — Integer 0-100 per rubric above.
+2. "main_fixes" — A short 1-2 sentence string stating the most critical missing things to fix next to improve the score.
+
+Example exact output format:
+{
+  "score": 85,
+  "main_fixes": "You are still missing 'Python' and 'Docker'. Add them to your skills section."
+}

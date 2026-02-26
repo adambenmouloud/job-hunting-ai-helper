@@ -1,11 +1,13 @@
 [project]
 name = "job-hunting-ai-helper"
 version = "0.1.0"
-description = "Add your description here"
+description = "AI-powered resume analyzer that scores and suggests improvements to your resume against job descriptions using Claude"
 readme = "README.md"
+license = { file = "LICENSE" }
 requires-python = ">=3.12"
 dependencies = [
     "anthropic>=0.83.0",
     "python-dotenv>=1.2.1",
     "streamlit>=1.54.0",
+    "typst>=0.14.8",
 ]
