@@ -43,3 +43,14 @@ Then open [http://localhost:8501](http://localhost:8501) in your browser.
 | Variable | Description |
 |----------|-------------|
 | `ANTHROPIC_API_KEY` | Your Anthropic API key |
+
+## Examples
+
+Two example resumes are included in `data/examples/` to help you get started with the Typst format:
+
+| Resume | Preview |
+|--------|---------|
+| Quant researcher — École Polytechnique, Vitol & SquarePoint Capital | [resume-quant.pdf](data/examples/resume-quant.pdf) |
+| Software engineer — MIT, HRT & Anthropic | [resume-tech.pdf](data/examples/resume-tech.pdf) |
+
+Place your own `.typ` resume files in `data/personal/` to use them in the app.
