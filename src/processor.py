@@ -32,7 +32,9 @@ class Processor:
         self.client = Anthropic(api_key=api_key) if api_key else None
         self.model = model
 
-    def analyze(self, resume: str, job_desc: str, mode: AnalysisMode = "full") -> AnalysisResult:
+    def analyze(
+        self, resume: str, job_desc: str, mode: AnalysisMode = "full"
+    ) -> AnalysisResult:
         """Analyze a resume against a job description. mode='full' for full analysis, 'score' for score + quick fixes."""
         if not self.client:
             raise ValueError("Missing ANTHROPIC_API_KEY in .env")
