@@ -25,6 +25,9 @@ data/logs/*
 # Dev Test
 test_run.py
 
+# Notes
+NOTES.txt
+
 # IDEs
 .vscode/
 .idea/
