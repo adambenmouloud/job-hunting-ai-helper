@@ -12,6 +12,10 @@ __pycache__/
 data/personal/*
 !data/personal/.gitkeep
 
+# Logs
+data/logs/*
+!data/logs/.gitkeep
+
 # Streamlit
 .streamlit/
 

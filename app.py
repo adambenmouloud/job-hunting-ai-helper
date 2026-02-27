@@ -93,11 +93,11 @@ def reset_analysis() -> None:
         st.session_state.pop(key, None)
 
 
-def run_analysis(resume_content: str, job_desc: str):
+def run_analysis(resume_content: str, job_desc: str, resume_filename: str | None = None):
     with st.spinner("Analyzing resume against job description..."):
         try:
             result = Processor().analyze(
-                resume=resume_content, job_desc=job_desc, mode="full"
+                resume=resume_content, job_desc=job_desc, mode="full", resume_filename=resume_filename
             )
             data = extract_json(result["content"])
 
@@ -110,6 +110,7 @@ def run_analysis(resume_content: str, job_desc: str):
                     "improvements": data.get("improvements", []),
                     "updated_typst": resume_content,
                     "editor_textarea": resume_content,
+                    "resume_filename": resume_filename,
                 }
             )
         except Exception as e:
@@ -121,7 +122,10 @@ def run_rescore(resume_content: str, job_desc: str):
     with st.spinner("Re-evaluating score..."):
         try:
             result = Processor().analyze(
-                resume=resume_content, job_desc=job_desc, mode="score"
+                resume=resume_content,
+                job_desc=job_desc,
+                mode="score",
+                resume_filename=st.session_state.get("resume_filename"),
             )
             data = extract_json(result["content"])
             st.session_state.new_score = int(data.get("score", 0))
@@ -262,7 +266,7 @@ def main():
                 reset_analysis()
                 resume_content = load_resume(resumes_dict[selected_resume_name])
                 if resume_content:
-                    run_analysis(resume_content, job_desc)
+                    run_analysis(resume_content, job_desc, resume_filename=selected_resume_name)
 
     if st.session_state.analyzed:
         display_results(job_desc)
