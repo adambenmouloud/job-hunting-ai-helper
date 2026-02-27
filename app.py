@@ -102,11 +102,16 @@ def reset_analysis() -> None:
         st.session_state.pop(key, None)
 
 
-def run_analysis(resume_content: str, job_desc: str, resume_filename: str | None = None):
+def run_analysis(
+    resume_content: str, job_desc: str, resume_filename: str | None = None
+):
     with st.spinner("Analyzing resume against job description..."):
         try:
             result = Processor().analyze(
-                resume=resume_content, job_desc=job_desc, mode="full", resume_filename=resume_filename
+                resume=resume_content,
+                job_desc=job_desc,
+                mode="full",
+                resume_filename=resume_filename,
             )
             data = extract_json(result["content"])
 
@@ -279,7 +284,9 @@ def main():
                 reset_analysis()
                 resume_content = load_resume(resumes_dict[selected_resume_name])
                 if resume_content:
-                    run_analysis(resume_content, job_desc, resume_filename=selected_resume_name)
+                    run_analysis(
+                        resume_content, job_desc, resume_filename=selected_resume_name
+                    )
 
     if st.session_state.analyzed:
         display_results(job_desc)

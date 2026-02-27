@@ -62,4 +62,6 @@ def log_llm_call(
     )
     conn.commit()
     conn.close()
-    logger.info(f"Logged LLM call: feature={feature} status={status} duration={duration_ms}ms")
+    logger.info(
+        f"Logged LLM call: feature={feature} status={status} duration={duration_ms}ms"
+    )
