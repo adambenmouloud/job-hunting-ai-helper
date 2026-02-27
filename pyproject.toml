@@ -11,3 +11,9 @@ dependencies = [
     "streamlit>=1.54.0",
     "typst>=0.14.8",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.4",
+    "ty>=0.0.19",
+]

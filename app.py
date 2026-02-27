@@ -5,7 +5,7 @@ from pathlib import Path
 import streamlit as st
 import typst
 
-from src.loader import get_resumes, load_resume, load_prompt
+from src.loader import get_resumes, load_resume
 from src.processor import Processor
 
 st.set_page_config(
@@ -16,7 +16,7 @@ st.set_page_config(
 
 
 def extract_json(text: str) -> dict:
-    """Safely extract JSON from an LLM response text."""
+    """Extract JSON from an LLM response text."""
     try:
         return json.loads(text)
     except json.JSONDecodeError:
@@ -94,25 +94,10 @@ def reset_analysis() -> None:
 
 
 def run_analysis(resume_content: str, job_desc: str):
-    """Run the initial resume analysis."""
     with st.spinner("Analyzing resume against job description..."):
-        sys_prompt = load_prompt("instruction_prompt")
-        tpl_prompt = load_prompt("template_prompt")
-
-        if not sys_prompt or not tpl_prompt:
-            st.error(
-                "Missing prompts: Ensure `instruction_prompt.txt` and `template_prompt.txt` exist."
-            )
-            return
-
         try:
-            result = Processor().process(
-                resume=resume_content,
-                job_desc=job_desc,
-                template_prompt=tpl_prompt,
-                system_prompt=sys_prompt,
-            )
-            data = extract_json(result.get("content", ""))
+            result = Processor().analyze(resume=resume_content, job_desc=job_desc, mode="full")
+            data = extract_json(result["content"])
 
             st.session_state.update(
                 {
@@ -131,23 +116,10 @@ def run_analysis(resume_content: str, job_desc: str):
 
 
 def run_rescore(resume_content: str, job_desc: str):
-    """Re-evaluate the resume score after manual edits."""
     with st.spinner("Re-evaluating score..."):
-        sys_prompt = load_prompt("score_instruction_prompt")
-        tpl_prompt = load_prompt("score_template_prompt")
-
-        if not sys_prompt or not tpl_prompt:
-            st.error("Missing prompts for scoring.")
-            return
-
         try:
-            result = Processor().score_only(
-                resume=resume_content,
-                job_desc=job_desc,
-                template_prompt=tpl_prompt,
-                system_prompt=sys_prompt,
-            )
-            data = extract_json(result.get("content", ""))
+            result = Processor().analyze(resume=resume_content, job_desc=job_desc, mode="score")
+            data = extract_json(result["content"])
             st.session_state.new_score = int(data.get("score", 0))
             st.session_state.main_fixes = data.get("main_fixes", "")
             st.rerun()
