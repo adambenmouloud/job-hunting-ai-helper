@@ -96,7 +96,9 @@ def reset_analysis() -> None:
 def run_analysis(resume_content: str, job_desc: str):
     with st.spinner("Analyzing resume against job description..."):
         try:
-            result = Processor().analyze(resume=resume_content, job_desc=job_desc, mode="full")
+            result = Processor().analyze(
+                resume=resume_content, job_desc=job_desc, mode="full"
+            )
             data = extract_json(result["content"])
 
             st.session_state.update(
@@ -118,7 +120,9 @@ def run_analysis(resume_content: str, job_desc: str):
 def run_rescore(resume_content: str, job_desc: str):
     with st.spinner("Re-evaluating score..."):
         try:
-            result = Processor().analyze(resume=resume_content, job_desc=job_desc, mode="score")
+            result = Processor().analyze(
+                resume=resume_content, job_desc=job_desc, mode="score"
+            )
             data = extract_json(result["content"])
             st.session_state.new_score = int(data.get("score", 0))
             st.session_state.main_fixes = data.get("main_fixes", "")
