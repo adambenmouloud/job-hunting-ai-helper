@@ -1,5 +1,6 @@
 import json
 import base64
+import logging
 from pathlib import Path
 
 import streamlit as st
@@ -7,6 +8,14 @@ import typst
 
 from src.loader import get_resumes, load_resume
 from src.processor import Processor
+
+logging.basicConfig(
+    filename="data/logs/app.log",
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+)
+
+_app_logger = logging.getLogger(__name__)
 
 st.set_page_config(
     page_title="AI Job Application Helper",
@@ -231,6 +240,10 @@ def display_results(job_desc: str):
 def main():
     st.title("💼 AI Job Application Helper")
     st.subheader("Your ultimate companion for landing that dream job.")
+
+    if "started" not in st.session_state:
+        _app_logger.info("New session started")
+        st.session_state.started = True
 
     if "analyzed" not in st.session_state:
         st.session_state.analyzed = False

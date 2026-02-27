@@ -1,6 +1,11 @@
+import atexit
+import logging
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
+atexit.register(lambda: logger.info("App shutting down"))
 
 _DB_PATH = Path("data/logs/history.db")
 
@@ -57,3 +62,4 @@ def log_llm_call(
     )
     conn.commit()
     conn.close()
+    logger.info(f"Logged LLM call: feature={feature} status={status} duration={duration_ms}ms")

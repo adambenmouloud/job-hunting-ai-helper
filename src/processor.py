@@ -1,3 +1,4 @@
+import logging
 import os
 import time
 from typing import Literal, TypedDict, cast
@@ -8,6 +9,8 @@ from dotenv import load_dotenv
 
 from src.loader import load_prompt
 from src.llm_logger import log_llm_call
+
+logger = logging.getLogger(__name__)
 
 AnalysisMode = Literal["full", "score"]
 
@@ -52,6 +55,7 @@ class Processor:
         if not sys_prompt or not tpl_prompt:
             raise ValueError(f"Missing prompt files for mode '{mode}'.")
 
+        logger.info(f"Starting LLM call: mode={mode} resume={resume_filename}")
         start = time.monotonic()
         try:
             resp = self.client.messages.create(
@@ -85,6 +89,7 @@ class Processor:
                 resume_filename=resume_filename,
                 error_message=str(e),
             )
+            logger.error(f"LLM call failed: {e}", exc_info=True)
             raise
 
         return {
