@@ -13,7 +13,10 @@ from app import extract_json  # noqa: E402
 
 
 def test_extract_json_valid_json():
-    assert extract_json('{"score": 85, "keywords": []}') == {"score": 85, "keywords": []}
+    assert extract_json('{"score": 85, "keywords": []}') == {
+        "score": 85,
+        "keywords": [],
+    }
 
 
 def test_extract_json_embedded_in_prose():

@@ -11,7 +11,11 @@ def mock_anthropic():
         mock_client = MagicMock()
         mock_cls.return_value = mock_client
         mock_resp = MagicMock()
-        mock_resp.content = [MagicMock(text='{"score": 85, "missing_keywords": [], "improvements": [], "hard_filter_risk": "low"}')]
+        mock_resp.content = [
+            MagicMock(
+                text='{"score": 85, "missing_keywords": [], "improvements": [], "hard_filter_risk": "low"}'
+            )
+        ]
         mock_resp.usage.input_tokens = 100
         mock_resp.usage.output_tokens = 50
         mock_client.messages.create.return_value = mock_resp
@@ -73,7 +77,10 @@ def test_analyze_logs_error_and_reraises(mock_anthropic, mock_prompts, monkeypat
 
 def test_analyze_score_mode_uses_score_prompts(mock_anthropic, monkeypatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test")
-    with patch("src.processor.log_llm_call"), patch("src.processor.load_prompt", return_value="fake prompt") as mock_load:
+    with (
+        patch("src.processor.log_llm_call"),
+        patch("src.processor.load_prompt", return_value="fake prompt") as mock_load,
+    ):
         p = Processor()
         p.analyze(resume=SAMPLE_RESUME, job_desc=SAMPLE_JD, mode="score")
     called_with = [c.args[0] for c in mock_load.call_args_list]
@@ -81,7 +88,9 @@ def test_analyze_score_mode_uses_score_prompts(mock_anthropic, monkeypatch):
     assert "score_template_prompt" in called_with
 
 
-def test_analyze_score_mode_uses_400_max_tokens(mock_anthropic, mock_prompts, monkeypatch):
+def test_analyze_score_mode_uses_400_max_tokens(
+    mock_anthropic, mock_prompts, monkeypatch
+):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test")
     with patch("src.processor.log_llm_call"):
         p = Processor()
