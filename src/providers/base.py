@@ -1,9 +1,10 @@
-from typing import Protocol
+from abc import ABC, abstractmethod
 
 
-class BaseProvider(Protocol):
+class BaseProvider(ABC):
     model: str
 
+    @abstractmethod
     def complete(
         self, system: str, user: str, max_tokens: int
     ) -> tuple[str, dict[str, int]]:

@@ -4,8 +4,10 @@ from anthropic import Anthropic
 from anthropic.types import TextBlock
 from dotenv import load_dotenv
 
+from src.providers.base import BaseProvider
 
-class AnthropicProvider:
+
+class AnthropicProvider(BaseProvider):
     def __init__(self, api_key: str | None = None, model: str = "claude-sonnet-4-6"):
         if api_key is None:
             load_dotenv(".env")
