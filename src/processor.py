@@ -59,6 +59,7 @@ class Processor:
                 model=self.provider.model,
                 duration_ms=duration_ms,
                 status="success",
+                provider=self.provider.provider_name,
                 resume_filename=resume_filename,
                 input_tokens=tokens["input"],
                 output_tokens=tokens["output"],
@@ -70,6 +71,7 @@ class Processor:
                 model=self.provider.model,
                 duration_ms=duration_ms,
                 status="error",
+                provider=self.provider.provider_name,
                 resume_filename=resume_filename,
                 error_message=str(e),
             )

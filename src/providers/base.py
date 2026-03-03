@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 
 class BaseProvider(ABC):
     model: str
+    provider_name: str
 
     @abstractmethod
     def complete(

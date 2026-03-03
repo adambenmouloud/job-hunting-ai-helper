@@ -15,6 +15,7 @@ class AnthropicProvider(BaseProvider):
         if not api_key:
             raise ValueError("Missing ANTHROPIC_API_KEY")
         self.model = model
+        self.provider_name = "anthropic"
         self._client = Anthropic(api_key=api_key)
 
     def complete(
