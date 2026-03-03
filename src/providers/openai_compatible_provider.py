@@ -29,6 +29,8 @@ class OpenAICompatibleProvider(BaseProvider):
         text = resp.choices[0].message.content
         if text is None:
             raise ValueError(f"No text content in response: {resp}")
+        if resp.usage is None:
+            raise ValueError(f"No usage data in response: {resp}")
         tokens = {
             "input": resp.usage.prompt_tokens,
             "output": resp.usage.completion_tokens,

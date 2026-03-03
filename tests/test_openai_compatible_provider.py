@@ -13,7 +13,7 @@ def mock_openai_client():
         yield mock_client
 
 
-def _make_response(text: str, input_tokens: int = 10, output_tokens: int = 5):
+def _make_response(text: str | None, input_tokens: int = 10, output_tokens: int = 5):
     resp = MagicMock()
     resp.choices[0].message.content = text
     resp.usage.prompt_tokens = input_tokens
