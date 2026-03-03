@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 
 from src.loader import get_resumes, load_resume
 from src.processor import Processor
+from src.providers import AnthropicProvider
 
 logging.basicConfig(
     filename="data/logs/app.log",
@@ -109,7 +110,7 @@ def run_analysis(
 ):
     with st.spinner("Analyzing resume against job description..."):
         try:
-            result = Processor(api_key=get_api_key()).analyze(
+            result = Processor(AnthropicProvider(api_key=get_api_key())).analyze(
                 resume=resume_content,
                 job_desc=job_desc,
                 mode="full",
@@ -137,7 +138,7 @@ def run_analysis(
 def run_rescore(resume_content: str, job_desc: str):
     with st.spinner("Re-evaluating score..."):
         try:
-            result = Processor(api_key=get_api_key()).analyze(
+            result = Processor(AnthropicProvider(api_key=get_api_key())).analyze(
                 resume=resume_content,
                 job_desc=job_desc,
                 mode="score",

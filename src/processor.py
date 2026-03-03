@@ -1,14 +1,10 @@
 import logging
-import os
 import time
-from typing import Literal, TypedDict, cast
-
-from anthropic import Anthropic
-from anthropic.types import TextBlock
-from dotenv import load_dotenv
+from typing import Literal, TypedDict
 
 from src.loader import load_prompt
 from src.llm_logger import log_llm_call
+from src.providers.base import BaseProvider
 
 logger = logging.getLogger(__name__)
 
@@ -31,12 +27,8 @@ class AnalysisResult(TypedDict):
 
 
 class Processor:
-    def __init__(self, model: str = "claude-sonnet-4-6", api_key: str | None = None):
-        if api_key is None:
-            load_dotenv(".env")
-            api_key = os.getenv("ANTHROPIC_API_KEY")
-        self.client = Anthropic(api_key=api_key) if api_key else None
-        self.model = model
+    def __init__(self, provider: BaseProvider):
+        self.provider = provider
 
     def analyze(
         self,
@@ -46,9 +38,6 @@ class Processor:
         resume_filename: str | None = None,
     ) -> AnalysisResult:
         """Analyze a resume against a job description. mode='full' for full analysis, 'score' for score + quick fixes."""
-        if not self.client:
-            raise ValueError("Missing ANTHROPIC_API_KEY in .env")
-
         sys_prompt_name, tpl_prompt_name = _PROMPTS[mode]
         sys_prompt = load_prompt(sys_prompt_name)
         tpl_prompt = load_prompt(tpl_prompt_name)
@@ -56,35 +45,29 @@ class Processor:
         if not sys_prompt or not tpl_prompt:
             raise ValueError(f"Missing prompt files for mode '{mode}'.")
 
+        user_content = f"{tpl_prompt}\n\nRESUME:\n{resume}\n\nJD:\n{job_desc}"
+
         logger.info(f"Starting LLM call: mode={mode} resume={resume_filename}")
         start = time.monotonic()
         try:
-            resp = self.client.messages.create(
-                model=self.model,
-                system=sys_prompt,
-                max_tokens=_MAX_TOKENS[mode],
-                messages=[
-                    {
-                        "role": "user",
-                        "content": f"{tpl_prompt}\n\nRESUME:\n{resume}\n\nJD:\n{job_desc}",
-                    }
-                ],
+            text, tokens = self.provider.complete(
+                sys_prompt, user_content, _MAX_TOKENS[mode]
             )
             duration_ms = int((time.monotonic() - start) * 1000)
             log_llm_call(
                 feature=mode,
-                model=self.model,
+                model=self.provider.model,
                 duration_ms=duration_ms,
                 status="success",
                 resume_filename=resume_filename,
-                input_tokens=resp.usage.input_tokens,
-                output_tokens=resp.usage.output_tokens,
+                input_tokens=tokens["input"],
+                output_tokens=tokens["output"],
             )
         except Exception as e:
             duration_ms = int((time.monotonic() - start) * 1000)
             log_llm_call(
                 feature=mode,
-                model=self.model,
+                model=self.provider.model,
                 duration_ms=duration_ms,
                 status="error",
                 resume_filename=resume_filename,
@@ -93,10 +76,4 @@ class Processor:
             logger.error(f"LLM call failed: {e}", exc_info=True)
             raise
 
-        return {
-            "content": cast(TextBlock, resp.content[0]).text,
-            "tokens": {
-                "input": resp.usage.input_tokens,
-                "output": resp.usage.output_tokens,
-            },
-        }
+        return {"content": text, "tokens": tokens}
