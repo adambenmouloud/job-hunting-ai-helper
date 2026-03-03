@@ -19,6 +19,7 @@ def _get_conn() -> sqlite3.Connection:
             ts TEXT,
             feature TEXT,
             resume_filename TEXT,
+            provider TEXT,
             model TEXT,
             input_tokens INTEGER,
             output_tokens INTEGER,
@@ -27,6 +28,12 @@ def _get_conn() -> sqlite3.Connection:
             error_message TEXT
         )
     """)
+    try:
+        conn.execute(
+            "ALTER TABLE llm_logs ADD COLUMN provider TEXT DEFAULT 'anthropic'"
+        )
+    except sqlite3.OperationalError:
+        pass  # column already exists
     conn.commit()
     return conn
 
@@ -36,6 +43,7 @@ def log_llm_call(
     model: str,
     duration_ms: int,
     status: str,
+    provider: str = "anthropic",
     resume_filename: str | None = None,
     input_tokens: int | None = None,
     output_tokens: int | None = None,
@@ -45,13 +53,14 @@ def log_llm_call(
     conn.execute(
         """
         INSERT INTO llm_logs
-            (ts, feature, resume_filename, model, input_tokens, output_tokens, duration_ms, status, error_message)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (ts, feature, resume_filename, provider, model, input_tokens, output_tokens, duration_ms, status, error_message)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             datetime.now(timezone.utc).isoformat(),
             feature,
             resume_filename,
+            provider,
             model,
             input_tokens,
             output_tokens,
@@ -63,5 +72,5 @@ def log_llm_call(
     conn.commit()
     conn.close()
     logger.info(
-        f"Logged LLM call: feature={feature} status={status} duration={duration_ms}ms"
+        f"Logged LLM call: provider={provider} model={model} feature={feature} status={status} duration={duration_ms}ms"
     )
