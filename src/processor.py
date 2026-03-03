@@ -31,9 +31,10 @@ class AnalysisResult(TypedDict):
 
 
 class Processor:
-    def __init__(self, model: str = "claude-sonnet-4-6"):
-        load_dotenv(".env")
-        api_key = os.getenv("ANTHROPIC_API_KEY")
+    def __init__(self, model: str = "claude-sonnet-4-6", api_key: str | None = None):
+        if api_key is None:
+            load_dotenv(".env")
+            api_key = os.getenv("ANTHROPIC_API_KEY")
         self.client = Anthropic(api_key=api_key) if api_key else None
         self.model = model
 
