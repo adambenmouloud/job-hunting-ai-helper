@@ -1,10 +1,12 @@
 import json
 import base64
 import logging
+import os
 from pathlib import Path
 
 import streamlit as st
 import typst
+from dotenv import load_dotenv
 
 from src.loader import get_resumes, load_resume
 from src.processor import Processor
@@ -107,7 +109,7 @@ def run_analysis(
 ):
     with st.spinner("Analyzing resume against job description..."):
         try:
-            result = Processor().analyze(
+            result = Processor(api_key=get_api_key()).analyze(
                 resume=resume_content,
                 job_desc=job_desc,
                 mode="full",
@@ -135,7 +137,7 @@ def run_analysis(
 def run_rescore(resume_content: str, job_desc: str):
     with st.spinner("Re-evaluating score..."):
         try:
-            result = Processor().analyze(
+            result = Processor(api_key=get_api_key()).analyze(
                 resume=resume_content,
                 job_desc=job_desc,
                 mode="score",
@@ -242,6 +244,46 @@ def display_results(job_desc: str):
             st.info(f"**Quick fixes applied:** {st.session_state.main_fixes}")
 
 
+@st.dialog("Settings")
+def settings_dialog() -> None:
+    """Modal dialog for API key configuration."""
+    st.markdown(
+        "Enter your [Anthropic API key](https://console.anthropic.com/settings/keys)."
+    )
+    st.caption("Stored in this browser session only, never persisted.")
+    key = st.text_input(
+        "Anthropic API Key",
+        type="password",
+        placeholder="sk-ant-...",
+        value=st.session_state.get("api_key", ""),
+    )
+    col_save, col_clear = st.columns(2)
+    with col_save:
+        if st.button("Save", type="primary", use_container_width=True):
+            if key.strip():
+                st.session_state["api_key"] = key.strip()
+                st.rerun()
+            else:
+                st.warning("Please enter a key.")
+    with col_clear:
+        if st.button("Clear", use_container_width=True):
+            st.session_state.pop("api_key", None)
+            st.rerun()
+
+
+def get_api_key() -> str | None:
+    """Resolve the Anthropic API key from secrets, env, or session state."""
+    try:
+        return st.secrets["ANTHROPIC_API_KEY"]
+    except (KeyError, FileNotFoundError):
+        pass
+    load_dotenv(".env")
+    key = os.getenv("ANTHROPIC_API_KEY")
+    if key:
+        return key
+    return st.session_state.get("api_key") or None
+
+
 def main():
     st.title("💼 AI Job Application Helper")
     st.subheader("Your ultimate companion for landing that dream job.")
@@ -253,6 +295,13 @@ def main():
     if "analyzed" not in st.session_state:
         st.session_state.analyzed = False
 
+    api_key = get_api_key()
+    if not api_key:
+        st.warning("No API key configured.", icon="🔑")
+        if st.button("Open Settings", type="primary"):
+            settings_dialog()
+        return
+
     resumes_dict = get_resumes()
     if not resumes_dict:
         st.error(
@@ -261,6 +310,8 @@ def main():
         return
 
     with st.sidebar:
+        if st.button("⚙️ Settings", use_container_width=True):
+            settings_dialog()
         st.markdown("### Job Match Analysis Setup")
         selected_resume_name = st.selectbox(
             "Select Resume Template",
