@@ -47,7 +47,9 @@ class Processor:
 
         user_content = f"{tpl_prompt}\n\nRESUME:\n{resume}\n\nJD:\n{job_desc}"
 
-        logger.info(f"Starting LLM call: mode={mode} resume={resume_filename}")
+        logger.info(
+            f"Starting LLM call: provider={self.provider.provider_name} model={self.provider.model} mode={mode} resume={resume_filename}"
+        )
         start = time.monotonic()
         try:
             text, tokens = self.provider.complete(
