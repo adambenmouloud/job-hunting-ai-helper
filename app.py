@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 from src.loader import get_resumes, load_resume
 from src.processor import Processor
-from src.providers import AnthropicProvider
+from src.providers import create_provider, DEFAULT_MODEL, DEFAULT_PROVIDER, PROVIDERS
 
 logging.basicConfig(
     filename="data/logs/app.log",
@@ -110,7 +110,7 @@ def run_analysis(
 ):
     with st.spinner("Analyzing resume against job description..."):
         try:
-            result = Processor(AnthropicProvider(api_key=get_api_key())).analyze(
+            result = Processor(build_provider(get_api_key())).analyze(
                 resume=resume_content,
                 job_desc=job_desc,
                 mode="full",
@@ -138,7 +138,7 @@ def run_analysis(
 def run_rescore(resume_content: str, job_desc: str):
     with st.spinner("Re-evaluating score..."):
         try:
-            result = Processor(AnthropicProvider(api_key=get_api_key())).analyze(
+            result = Processor(build_provider(get_api_key())).analyze(
                 resume=resume_content,
                 job_desc=job_desc,
                 mode="score",
@@ -247,15 +247,31 @@ def display_results(job_desc: str):
 
 @st.dialog("Settings")
 def settings_dialog() -> None:
-    """Modal dialog for API key configuration."""
-    st.markdown(
-        "Enter your [Anthropic API key](https://console.anthropic.com/settings/keys)."
+    """Modal dialog for provider, model, and API key configuration."""
+    provider_name = st.selectbox(
+        "Provider",
+        options=list(PROVIDERS.keys()),
+        index=list(PROVIDERS.keys()).index(
+            st.session_state.get("provider_name", DEFAULT_PROVIDER)
+        ),
     )
-    st.caption("Stored in this browser session only, never persisted.")
+    config = PROVIDERS[provider_name]
+    model = st.selectbox(
+        "Model",
+        options=config.models,
+        index=0
+        if st.session_state.get("provider_name") != provider_name
+        else (
+            config.models.index(st.session_state["model"])
+            if st.session_state.get("model") in config.models
+            else 0
+        ),
+    )
+    st.caption("API key stored in this browser session only, never persisted.")
     key = st.text_input(
-        "Anthropic API Key",
+        "API Key",
         type="password",
-        placeholder="sk-ant-...",
+        placeholder="sk-...",
         value=st.session_state.get("api_key", ""),
     )
     col_save, col_clear = st.columns(2)
@@ -263,26 +279,39 @@ def settings_dialog() -> None:
         if st.button("Save", type="primary", use_container_width=True):
             if key.strip():
                 st.session_state["api_key"] = key.strip()
+                st.session_state["provider_name"] = provider_name
+                st.session_state["model"] = model
                 st.rerun()
             else:
                 st.warning("Please enter a key.")
     with col_clear:
         if st.button("Clear", use_container_width=True):
-            st.session_state.pop("api_key", None)
+            for k in ("api_key", "provider_name", "model"):
+                st.session_state.pop(k, None)
             st.rerun()
 
 
 def get_api_key() -> str | None:
-    """Resolve the Anthropic API key from secrets, env, or session state."""
+    """Resolve API key from secrets, env, or session state."""
+    provider_name = st.session_state.get("provider_name", DEFAULT_PROVIDER)
+    secret_key = f"{provider_name.upper()}_API_KEY"
     try:
-        return st.secrets["ANTHROPIC_API_KEY"]
+        return st.secrets[secret_key]
     except (KeyError, FileNotFoundError):
         pass
     load_dotenv(".env")
-    key = os.getenv("ANTHROPIC_API_KEY")
+    key = os.getenv(secret_key)
     if key:
         return key
     return st.session_state.get("api_key") or None
+
+
+def build_provider(api_key: str | None):
+    if api_key is None:
+        raise ValueError("No API key configured.")
+    provider_name = st.session_state.get("provider_name", DEFAULT_PROVIDER)
+    model = st.session_state.get("model", DEFAULT_MODEL)
+    return create_provider(provider_name=provider_name, api_key=api_key, model=model)
 
 
 def main():
