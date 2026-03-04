@@ -306,7 +306,9 @@ def get_api_key() -> str | None:
     return st.session_state.get("api_key") or None
 
 
-def build_provider(api_key: str):
+def build_provider(api_key: str | None):
+    if api_key is None:
+        raise ValueError("No API key configured.")
     provider_name = st.session_state.get("provider_name", DEFAULT_PROVIDER)
     model = st.session_state.get("model", DEFAULT_MODEL)
     return create_provider(provider_name=provider_name, api_key=api_key, model=model)
