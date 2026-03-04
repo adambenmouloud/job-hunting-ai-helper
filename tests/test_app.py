@@ -17,9 +17,10 @@ def reset_st_mocks():
     """Reset streamlit mock state between tests."""
     st = sys.modules["streamlit"]
     st.secrets.__getitem__.side_effect = None
-    st.session_state.get.return_value = None
+    st.session_state.get.side_effect = lambda key, default=None: default
     yield
     st.secrets.__getitem__.side_effect = None
+    st.session_state.get.side_effect = None
 
 
 def test_extract_json_valid_json():
@@ -50,9 +51,11 @@ def test_get_api_key_falls_back_to_env(monkeypatch):
 
 
 def test_get_api_key_falls_back_to_session(monkeypatch):
-    sys.modules["streamlit"].secrets.__getitem__.side_effect = KeyError
+    st = sys.modules["streamlit"]
+    st.secrets.__getitem__.side_effect = KeyError
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-    sys.modules["streamlit"].session_state.get.return_value = "sk-from-session"
+    state = {"provider_name": "anthropic", "api_key": "sk-from-session"}
+    st.session_state.get.side_effect = lambda key, default=None: state.get(key, default)
     with patch("app.load_dotenv"):
         assert get_api_key() == "sk-from-session"
 
