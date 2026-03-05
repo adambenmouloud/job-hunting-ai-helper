@@ -72,3 +72,5 @@ Two example resumes are included in `data/examples/` to help you get started wit
 | Software engineer — MIT, HRT & Anthropic | [resume-tech.pdf](data/examples/resume-tech.pdf) |
 
 Place your own `.typ` resume files in `data/personal/` to use them in the app.
+
+On Streamlit Cloud (or any environment without local file access), use the **📄 Upload Resume** button in the sidebar to upload `.typ` files directly. Uploaded resumes are stored in the session and merged with any local ones.
