@@ -245,6 +245,31 @@ def display_results(job_desc: str):
             st.info(f"**Quick fixes applied:** {st.session_state.main_fixes}")
 
 
+@st.dialog("Upload Resume")
+def upload_resume_dialog() -> None:
+    """Modal dialog for uploading .typ resume files."""
+    uploaded_files = st.file_uploader(
+        "Select your resume files (.typ)",
+        type=["typ"],
+        accept_multiple_files=True,
+    )
+    if st.button("Save", type="primary", use_container_width=True):
+        if not uploaded_files:
+            st.warning("Please select at least one .typ file.")
+        else:
+            uploaded = st.session_state.get("uploaded_resumes", {})
+            for f in uploaded_files:
+                name = (
+                    f.name.removesuffix(".typ")
+                    .replace("_", " ")
+                    .replace("-", " ")
+                    .title()
+                )
+                uploaded[name] = f.read().decode("utf-8")
+            st.session_state["uploaded_resumes"] = uploaded
+            st.rerun()
+
+
 @st.dialog("Settings")
 def settings_dialog() -> None:
     """Modal dialog for provider, model, and API key configuration."""
@@ -332,17 +357,41 @@ def main():
             settings_dialog()
         return
 
-    resumes_dict = get_resumes()
-    if not resumes_dict:
-        st.error(
-            "No resumes found in the data/personal directory. Please add some .typ files."
-        )
-        return
+    uploaded_resumes = st.session_state.get("uploaded_resumes", {})
+    resumes_dict = {**get_resumes(), **uploaded_resumes}
 
     with st.sidebar:
-        if st.button("⚙️ Settings", use_container_width=True):
-            settings_dialog()
+        col_settings, col_upload = st.columns(2)
+        with col_settings:
+            if st.button("⚙️ Settings", use_container_width=True):
+                settings_dialog()
+        with col_upload:
+            if st.button("📄 Upload Resume", use_container_width=True):
+                upload_resume_dialog()
         st.markdown("### Job Match Analysis Setup")
+
+    if not resumes_dict:
+        st.warning("No resumes found. Upload a .typ file to get started.")
+        inline_files = st.file_uploader(
+            "Select your resume files (.typ)",
+            type=["typ"],
+            accept_multiple_files=True,
+        )
+        if inline_files:
+            new_uploads = {}
+            for f in inline_files:
+                name = (
+                    f.name.removesuffix(".typ")
+                    .replace("_", " ")
+                    .replace("-", " ")
+                    .title()
+                )
+                new_uploads[name] = f.read().decode("utf-8")
+            st.session_state["uploaded_resumes"] = new_uploads
+            st.rerun()
+        st.stop()
+
+    with st.sidebar:
         selected_resume_name = st.selectbox(
             "Select Resume Template",
             options=list(resumes_dict.keys()),
@@ -363,7 +412,10 @@ def main():
                 st.sidebar.warning("Please paste a job description to proceed.")
             else:
                 reset_analysis()
-                resume_content = load_resume(resumes_dict[selected_resume_name])
+                if selected_resume_name in uploaded_resumes:
+                    resume_content = uploaded_resumes[selected_resume_name]
+                else:
+                    resume_content = load_resume(resumes_dict[selected_resume_name])
                 if resume_content:
                     run_analysis(
                         resume_content, job_desc, resume_filename=selected_resume_name
